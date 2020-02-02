@@ -1,0 +1,16 @@
+FROM php:7.4-fpm
+
+RUN apt-get update \
+    && apt-get install -y git zip unzip nano \
+    && docker-php-ext-install pdo_mysql \
+    && pecl install apcu \
+    && docker-php-ext-enable apcu \
+    && pecl install xdebug-2.9.0 \
+    && docker-php-ext-enable xdebug \
+    && docker-php-ext-install json
+
+COPY xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+
+RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+
+WORKDIR /app

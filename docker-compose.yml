@@ -1,0 +1,65 @@
+version: '3.7'
+services:
+  nginx:
+    build:
+      context: ./docker/development/nginx
+      dockerfile: nginx.docker
+    volumes:
+      - ./:/app
+      - ./var/log/:/var/log/nginx/
+    links:
+      - php-fpm
+    ports:
+      - "8080:80"
+    networks:
+      - internal
+  php-fpm:
+    build:
+      context: ./docker/development/php
+      dockerfile: php-fpm.docker
+    volumes:
+      - ./:/app
+    links:
+      - mysql
+    environment:
+      PHP_IDE_CONFIG: "serverName=Docker"
+    networks:
+      - internal
+  php-cli:
+    build:
+      context: ./docker/development/php
+      dockerfile: php-cli.docker
+    volumes:
+      - ./:/app
+      - composer:/root/.composer/cache
+    tty: true
+    links:
+      - mysql
+    environment:
+      PHP_IDE_CONFIG: "serverName=Docker"
+    networks:
+      - internal
+  mysql:
+    build:
+      context: ./docker/development/mysql
+      dockerfile: mysql.docker
+    #volumes:
+    #  - dbdata:/var/lib/mysql - uncomment this, if you want to use local db
+    environment:
+      MYSQL_DATABASE: book_manager
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    networks:
+      - internal
+volumes:
+  composer:
+  #dbdata: - uncomment this, if you want to use local db
+networks:
+  internal:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.220.0/28
